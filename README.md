@@ -49,7 +49,7 @@ Sistem akan otomatis berpindah ke mode darurat apabila pengguna menyebutkan geja
 ## Struktur Proyek
 
 ```
-kelompok versi healthbuddy/
+.
 ├── app.py              Halaman Streamlit utama
 ├── requirements.txt
 ├── smoke_test.py       Pengujian percakapan tanpa antarmuka
