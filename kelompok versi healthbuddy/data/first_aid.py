@@ -1,0 +1,121 @@
+"""Pertolongan Pertama Pada Kecelakaan dan situasi darurat ringan."""
+
+FIRST_AID = {
+    "luka sayat": {
+        "judul": "Luka Sayat / Lecet Ringan",
+        "langkah": [
+            "Cuci tangan terlebih dahulu sebelum menangani luka.",
+            "Bersihkan luka dengan air mengalir bersih selama 1-2 menit.",
+            "Gunakan sabun lembut di area sekitar luka, bukan di dalam luka.",
+            "Tekan dengan kasa bersih jika masih berdarah, sekitar 5 menit.",
+            "Oleskan antiseptik (povidone iodine) di tepi luka.",
+            "Tutup dengan plester atau kasa steril.",
+            "Ganti balutan setiap hari dan jaga tetap kering.",
+        ],
+        "warning": "Segera ke fasilitas medis jika luka dalam, terkena benda berkarat, atau pendarahan tidak berhenti dalam 10 menit.",
+    },
+    "luka bakar": {
+        "judul": "Luka Bakar Ringan (Derajat 1)",
+        "langkah": [
+            "Aliri area yang terbakar dengan air mengalir suhu ruang selama 15-20 menit.",
+            "Jangan gunakan es, pasta gigi, kecap, atau minyak.",
+            "Lepas perhiasan atau pakaian ketat di sekitar area sebelum bengkak.",
+            "Tutup luka dengan kasa steril longgar atau plastik bersih.",
+            "Hindari memecahkan lepuhan jika terbentuk.",
+            "Jaga kebersihan dan ganti balutan setiap hari.",
+        ],
+        "warning": "Segera ke IGD jika luka bakar luas, melepuh besar, atau di area wajah/genital/sendi.",
+    },
+    "mimisan": {
+        "judul": "Mimisan",
+        "langkah": [
+            "Duduk tegak dan condongkan kepala sedikit ke depan, jangan menengadah.",
+            "Pencet bagian lunak hidung (di bawah tulang) selama 10-15 menit penuh.",
+            "Bernapas melalui mulut.",
+            "Kompres dingin di pangkal hidung atau tengkuk.",
+            "Setelah berhenti, hindari mengupil atau membungkuk selama beberapa jam.",
+        ],
+        "warning": "Ke IGD jika mimisan tidak berhenti setelah 20 menit atau setelah trauma kepala.",
+    },
+    "tersedak": {
+        "judul": "Tersedak (Choking)",
+        "langkah": [
+            "Tanyakan: Anda tersedak? Jika tidak bisa bicara/batuk, lakukan tindakan.",
+            "Berdiri di belakang korban, condongkan ke depan.",
+            "Pukul keras 5 kali di antara tulang belikat dengan tumit tangan.",
+            "Jika tidak keluar, lakukan Heimlich: kepalkan tangan di atas pusar, tarik ke dalam dan ke atas 5 kali.",
+            "Bergantian sampai benda keluar atau bantuan datang.",
+            "Untuk bayi: posisi tengkurap di lengan, tepuk punggung 5x.",
+        ],
+        "warning": "Hubungi 119 segera jika korban kehilangan kesadaran atau tindakan tidak berhasil.",
+    },
+    "pingsan": {
+        "judul": "Pingsan / Sinkop",
+        "langkah": [
+            "Baringkan korban telentang di tempat datar dan aman.",
+            "Angkat kedua kaki sekitar 30 cm untuk mengalirkan darah ke otak.",
+            "Longgarkan pakaian di leher, dada, dan pinggang.",
+            "Pastikan jalan napas terbuka, periksa pernapasan.",
+            "Jangan berikan makanan atau minuman saat belum sadar penuh.",
+            "Saat sadar, bantu duduk perlahan, beri minum manis hangat.",
+        ],
+        "warning": "Hubungi 119 jika tidak sadar dalam 1 menit, sulit bernapas, atau berulang.",
+    },
+    "demam anak": {
+        "judul": "Demam pada Anak",
+        "langkah": [
+            "Ukur suhu dengan termometer, catat angka dan waktunya.",
+            "Pakaikan pakaian tipis, jangan diselimuti tebal.",
+            "Kompres dengan air hangat di dahi, ketiak, dan lipat paha.",
+            "Beri minum lebih banyak (ASI/air/oralit) untuk cegah dehidrasi.",
+            "Pastikan ruangan sejuk dan ventilasi baik.",
+            "Pantau setiap 2 jam.",
+        ],
+        "warning": "Ke IGD jika demam di atas 39 derajat, kejang, sangat lemas, atau di bawah 3 bulan.",
+    },
+    "keseleo": {
+        "judul": "Keseleo / Terkilir",
+        "langkah": [
+            "Terapkan prinsip RICE.",
+            "Rest: istirahatkan area yang cedera, jangan dipakai beraktivitas.",
+            "Ice: kompres es 15-20 menit setiap 2-3 jam dalam 48 jam pertama.",
+            "Compression: balut dengan perban elastis (tidak terlalu kencang).",
+            "Elevation: tinggikan area cedera di atas level jantung.",
+            "Hindari pijat keras dalam 48 jam pertama.",
+        ],
+        "warning": "Ke IGD jika tidak bisa menumpu beban, mati rasa, atau bentuk sendi tidak normal.",
+    },
+    "gigitan serangga": {
+        "judul": "Gigitan / Sengatan Serangga",
+        "langkah": [
+            "Singkirkan sengat (jika ada) dengan menggesek pakai kartu, jangan dipencet.",
+            "Cuci area gigitan dengan sabun dan air bersih.",
+            "Kompres dingin selama 10-15 menit untuk kurangi bengkak dan gatal.",
+            "Hindari menggaruk untuk cegah infeksi.",
+            "Pantau tanda alergi: bengkak luas, sesak, pusing.",
+        ],
+        "warning": "Hubungi 119 jika muncul sesak, bengkak wajah, atau pusing hebat (anafilaksis).",
+    },
+    "muntah": {
+        "judul": "Muntah Berulang",
+        "langkah": [
+            "Istirahatkan lambung 30-60 menit setelah muntah.",
+            "Mulai dengan sedikit cairan: oralit, air putih, atau es batu kecil.",
+            "Tingkatkan perlahan, hindari minum sekaligus banyak.",
+            "Setelah 4-6 jam tanpa muntah, coba makanan hambar: bubur, biskuit tawar.",
+            "Hindari susu, makanan berlemak, dan pedas sementara.",
+        ],
+        "warning": "Ke fasilitas medis jika muntah lebih dari 24 jam, ada darah, atau tanda dehidrasi.",
+    },
+    "dehidrasi": {
+        "judul": "Dehidrasi Ringan-Sedang",
+        "langkah": [
+            "Minum oralit atau larutan garam-gula buatan sendiri (1 sendok teh garam + 8 sendok teh gula dalam 1 liter air).",
+            "Minum sedikit-sedikit tapi sering.",
+            "Hindari minuman manis pekat, soda, atau alkohol.",
+            "Istirahat di tempat sejuk dan teduh.",
+            "Pantau tanda: jumlah BAK, warna urin, kondisi mulut.",
+        ],
+        "warning": "Ke IGD jika urin sangat pekat/tidak BAK 8 jam, mata cekung, atau lemas berat.",
+    },
+}
