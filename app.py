@@ -305,7 +305,6 @@ def render_halodoc_footer():
             </div>
             <div style="border-top: 1px solid rgba(0,0,0,0.06); padding-top: 1rem; display: flex; justify-content: space-between; opacity: 0.7; font-size: 0.78rem;">
                 <span>&copy; 2026 HealthBuddy — Aplikasi Sistem Pakar Kesehatan Terintegrasi. All Rights Reserved.</span>
-                <span>Informatics Engineering &middot; Kelas Otomata Linier</span>
             </div>
         </div>
         """,
