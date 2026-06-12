@@ -1,6 +1,7 @@
 """HealthBuddy Streamlit application."""
 
 import html
+import random
 import re
 import sys
 import time
@@ -75,6 +76,10 @@ def init_state():
         st.session_state.hospital_lookup = False
     if "pending_prompt" not in st.session_state:
         st.session_state.pending_prompt = None
+    if "thinking_started_at" not in st.session_state:
+        st.session_state.thinking_started_at = None
+    if "thinking_duration" not in st.session_state:
+        st.session_state.thinking_duration = None
 
 
 def preserve_theme_reset(page="CHAT"):
@@ -186,7 +191,7 @@ def animated_words(text):
     words = plain_text(text).split()
     spans = []
     for idx, word in enumerate(words[:180]):
-        spans.append(f'<span style="animation-delay:{idx * 0.035:.3f}s">{html.escape(word)} </span>')
+        spans.append(f'<span style="animation-delay:{idx * 0.075:.3f}s">{html.escape(word)} </span>')
     return '<p class="hb-word-stream">' + ''.join(spans) + '</p>'
 
 
@@ -207,6 +212,8 @@ def warm_response(raw):
 def run_prompt(prompt):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.pending_prompt = prompt
+    st.session_state.thinking_started_at = time.time()
+    st.session_state.thinking_duration = round(random.uniform(1.0, 7.0), 1)
     st.session_state.tip_index += 1
     st.rerun()
 
@@ -255,12 +262,12 @@ def render_home():
         <section class="hb-shell hb-hero">
             <div class="hb-hero-copy">
                 <span class="hb-kicker">Teori Bahasa dan Otomata</span>
-                <h1>Asisten kesehatan yang bekerja dari aturan, bukan dari API AI.</h1>
-                <p>HealthBuddy mengenali keluhan ringan, istilah medis, dan panduan P3K melalui Finite State Machine, stemming Bahasa Indonesia, serta pencocokan pola.</p>
+                <h1>HealthBuddy membantu membaca keluhan awal dengan lebih terarah.</h1>
+                <p>Platform edukasi kesehatan berbasis percakapan untuk memahami gejala ringan, istilah medis, dan langkah pertolongan pertama secara aman, ringkas, dan mudah ditelusuri.</p>
                 <div class="hb-hero-actions">
-                    <span>{icon('shield-check', 17)} Tanpa diagnosis</span>
-                    <span>{icon('workflow', 17)} FSM transparan</span>
-                    <span>{icon('database', 17)} Knowledge base lokal</span>
+                    <span>{icon('shield-check', 17)} Edukatif dan konservatif</span>
+                    <span>{icon('workflow', 17)} Alur percakapan terstruktur</span>
+                    <span>{icon('database', 17)} Basis pengetahuan lokal</span>
                 </div>
             </div>
             <div class="hb-hero-board">
@@ -272,8 +279,6 @@ def render_home():
         """,
         unsafe_allow_html=True,
     )
-
-    lottie_html("landingpageanim.json", "hb-landing-lottie", height=260)
 
     c1, c2, c3 = st.columns([1.15, 0.85, 1], gap="medium")
     cards = [
@@ -334,10 +339,11 @@ def render_chat_messages():
         )
     if st.session_state.pending_prompt:
         thinking_id = "avatar_thinking"
+        duration = st.session_state.get("thinking_duration") or 1.8
         html_messages.append(
             f'<div class="hb-chat-row hb-chat-assistant hb-thinking-row" data-avatar="{thinking_id}" data-role="assistant">'
             f'<div class="hb-chat-avatar" id="{thinking_id}"></div>'
-            f'<div class="hb-chat-bubble hb-thinking-bubble"><div class="hb-chat-name">HealthBuddy sedang membaca keluhan</div>'
+            f'<div class="hb-chat-bubble hb-thinking-bubble"><div class="hb-chat-name">Thinking for {duration:.1f}s</div>'
             f'<div class="hb-thinking-dots"><span></span><span></span><span></span></div></div></div>'
         )
     theme = st.session_state.theme
@@ -417,11 +423,17 @@ def complete_pending_reply():
     prompt = st.session_state.get("pending_prompt")
     if not prompt:
         return
-    time.sleep(0.75)
+    started = st.session_state.get("thinking_started_at") or time.time()
+    duration = st.session_state.get("thinking_duration") or 1.8
+    remaining = max(0, duration - (time.time() - started))
+    if remaining > 0:
+        time.sleep(remaining)
     st.session_state.bot.step(prompt)
     reply = warm_response(st.session_state.bot.get_response())
     st.session_state.messages.append({"role": "assistant", "content": reply, "animate": True})
     st.session_state.pending_prompt = None
+    st.session_state.thinking_started_at = None
+    st.session_state.thinking_duration = None
     st.rerun()
 
 
@@ -458,8 +470,6 @@ def render_chat():
         render_hospital_lookup()
 
     with right:
-        lottie_html("boticonanim.json", "hb-bot-lottie", height=170)
-        lottie_html("usericonanim.json", "hb-user-lottie", height=120)
         st.markdown(
             f"""
             <aside class="hb-aside-card hb-warning-card">
