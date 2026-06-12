@@ -400,6 +400,35 @@ def render_home():
         with col:
             st.markdown(f'<div class="hb-stat"><strong>{num}</strong><span>{label}</span></div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="hb-section-gap"></div>', unsafe_allow_html=True)
+    flow_left, flow_right = st.columns([1.25, 0.75], gap="medium")
+    with flow_left:
+        st.markdown(
+            f"""
+            <section class="hb-card hb-process-card">
+                <span class="hb-kicker">Alur penggunaan</span>
+                <h3>Dibuat untuk membantu pengguna memahami keluhan secara bertahap.</h3>
+                <div class="hb-process-grid">
+                    <article><b>01</b><strong>Ceritakan keluhan</strong><p>Pengguna menulis gejala dengan bahasa sehari-hari tanpa perlu format medis yang rumit.</p></article>
+                    <article><b>02</b><strong>Sistem menelaah pola</strong><p>FSM dan NLP rule-based mengenali intent, gejala, istilah, serta red flag prioritas.</p></article>
+                    <article><b>03</b><strong>Baca arahan aman</strong><p>Respons disusun sebagai edukasi konservatif, bukan diagnosis atau resep pengobatan.</p></article>
+                </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+    with flow_right:
+        st.markdown(
+            f"""
+            <aside class="hb-card hb-safety-card">
+                <div class="hb-card-icon">{icon('shield-check', 22)}</div>
+                <h3>Prinsip keamanan</h3>
+                <p>HealthBuddy tidak menyarankan dosis obat dan tidak menggantikan tenaga medis. Jika sistem menemukan tanda bahaya, percakapan diarahkan ke mode darurat.</p>
+            </aside>
+            """,
+            unsafe_allow_html=True,
+        )
+
 
 def state_label():
     state = st.session_state.bot.state
@@ -450,7 +479,7 @@ def render_chat_messages():
             "accentDeep": "#8ee9cf", "accentSoft": "#123a33"
         },
     }[theme]
-    height = min(640, max(430, len(st.session_state.messages) * 118 + 130))
+    height = min(760, max(600, len(st.session_state.messages) * 128 + 150))
     rows = "".join(html_messages)
     components.html(
         f"""
@@ -462,12 +491,12 @@ def render_chat_messages():
         <style>
         * {{ box-sizing: border-box; }}
         body {{ margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; background: transparent; color: {colors['fg']}; }}
-        .hb-chat-window {{ height: {height}px; overflow-y: auto; padding: 18px; border: 1px solid {colors['border']}; border-radius: 28px 10px 28px 28px; background: linear-gradient(180deg, {colors['surface']} 0%, {colors['surface2']} 100%); scroll-behavior: smooth; }}
-        .hb-chat-row {{ display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; animation: rowIn 360ms ease both; }}
+        .hb-chat-window {{ height: {height}px; overflow-y: auto; overflow-x: hidden; padding: 22px; border: 1px solid {colors['border']}; border-radius: 30px 12px 30px 30px; background: linear-gradient(180deg, {colors['surface']} 0%, {colors['surface2']} 100%); scroll-behavior: smooth; }}
+        .hb-chat-row {{ display: flex; align-items: flex-start; gap: 12px; width: 100%; max-width: 100%; min-width: 0; margin-bottom: 18px; animation: rowIn 360ms ease both; }}
         .hb-chat-user {{ flex-direction: row-reverse; }}
         .hb-chat-avatar {{ width: 46px; height: 46px; flex: 0 0 46px; border-radius: 999px; overflow: hidden; border: 1px solid {colors['accent']}; background: {colors['accentSoft']}; }}
         .hb-chat-user .hb-chat-avatar {{ border-color: {colors['fg']}; background: {colors['fg']}; }}
-        .hb-chat-bubble {{ max-width: min(78%, 760px); width: fit-content; padding: 14px 16px; border: 1px solid {colors['border']}; border-radius: 4px 18px 18px 18px; background: {colors['surface']}; color: {colors['fg']}; }}
+        .hb-chat-bubble {{ max-width: min(82%, calc(100% - 68px)); min-width: 0; width: fit-content; padding: 15px 18px; border: 1px solid {colors['border']}; border-radius: 4px 18px 18px 18px; background: {colors['surface']}; color: {colors['fg']}; overflow-wrap: anywhere; word-break: break-word; }}
         .hb-chat-user .hb-chat-bubble {{ border-color: {colors['fg']}; border-radius: 18px 4px 18px 18px; background: {colors['fg']}; color: {colors['surface']}; }}
         .hb-chat-name {{ margin-bottom: 8px; font: 700 10px/1 JetBrains Mono, monospace; letter-spacing: .14em; text-transform: uppercase; color: {colors['accentDeep']}; }}
         .hb-chat-user .hb-chat-name {{ color: rgba(255,255,255,.68); }}
@@ -477,7 +506,7 @@ def render_chat_messages():
         .hb-chat-body li {{ margin-bottom: 5px; line-height: 1.55; }}
         .hb-chat-body em {{ color: {colors['accentDeep']}; }}
         .hb-chat-user .hb-chat-body em {{ color: {colors['accent']}; }}
-        .tw-char {{ display: inline; opacity: 0; animation: charIn 120ms ease forwards; white-space: pre-wrap; }}
+        .tw-char {{ display: inline; opacity: 0; animation: charIn 120ms ease forwards; white-space: normal; overflow-wrap: anywhere; }}
         .hb-thinking-dots {{ display: inline-flex; align-items: center; gap: 6px; height: 22px; }}
         .hb-thinking-dots span {{ width: 8px; height: 8px; border-radius: 999px; background: {colors['accent']}; animation: thinking 1s ease-in-out infinite; }}
         .hb-thinking-dots span:nth-child(2) {{ animation-delay: .15s; }}
@@ -488,6 +517,11 @@ def render_chat_messages():
         @keyframes charIn {{ to {{ opacity: 1; }} }}
         @keyframes thinking {{ 0%, 80%, 100% {{ opacity: .32; transform: translateY(0); }} 40% {{ opacity: 1; transform: translateY(-4px); }} }}
         @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+        @media (max-width: 720px) {{
+          .hb-chat-window {{ height: {min(height, 680)}px; padding: 14px; border-radius: 22px; }}
+          .hb-chat-avatar {{ width: 40px; height: 40px; flex-basis: 40px; }}
+          .hb-chat-bubble {{ max-width: calc(100% - 54px); padding: 13px 14px; }}
+        }}
         </style>
         </head>
         <body>
@@ -539,7 +573,7 @@ def complete_pending_reply():
 
 def render_chat():
     status, title, desc = state_label()
-    left, right = st.columns([1.8, 1], gap="medium")
+    left, right = st.columns([2.55, 0.95], gap="large")
     with left:
         st.markdown(
             f"""
