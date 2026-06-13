@@ -28,7 +28,7 @@ INTENT_KEYWORDS = {
     "IDENTITY": [r"\b(siapa kamu|kamu siapa|apa itu healthbuddy|apa itu health buddy|tentang healthbuddy|tentang health buddy|healthbuddy itu apa|health buddy itu apa)\b"],
     "CAPABILITY": [r"\b(bisa apa|kamu bisa apa|fitur apa|bantu apa|apa yang bisa kamu bantu|fungsi kamu|cara kerja kamu)\b"],
     "EMERGENCY_INFO": [r"\b(nomor (darurat|emergency)|igd|ambulans|119|nomor penting)\b"],
-    "ASK_HOSPITAL": [r"\b(rumah sakit|rs |rs\b|cari rs|rs terdekat|rumah sakit terdekat|puskesmas|klinik terdekat|lokasi rs|lokasi rumah sakit)\b"],
+    "ASK_HOSPITAL": [r"\b(rumah sakit|rs |rs\b|cari rs|rs terdekat|rumah sakit terdekat|puskesmas|klinik terdekat|faskes|fasilitas kesehatan|lokasi rs|lokasi rumah sakit)\b"],
     "ASK_DEFINITION": [r"\b(apa itu|apakah itu|definisi|arti|pengertian|maksud (dari|dengan))\b"],
     "ASK_FIRST_AID": [r"\b(p3k|pertolongan pertama|cara mengatasi|cara menangani|kalau .* bagaimana)\b"],
     "ASK_FAQ": [r"\b(berapa lama|berapa banyak|tips|cara hidup sehat|gaya hidup|saran sehat)\b"],
@@ -36,6 +36,39 @@ INTENT_KEYWORDS = {
     "AFFIRM": [r"\b(iya|ya|betul|benar|setuju|oke saja|cocok)\b"],
     "DENY": [r"\b(tidak|enggak|nggak|bukan|tidak juga|engga)\b"],
 }
+
+FACILITY_ACTION_TERMS = [
+    "cari", "carikan", "temukan", "rekomendasikan", "rekomendasi", "sarankan", "saranin",
+    "tunjukkan", "tampilkan", "lihatkan", "butuh", "perlu", "minta", "tolong", "bantu cari",
+]
+
+FACILITY_TARGET_TERMS = [
+    "rumah sakit", "rs", "hospital", "klinik", "puskesmas", "dokter", "igd", "faskes",
+    "fasilitas kesehatan", "layanan kesehatan", "tempat berobat", "tempat periksa", "unit gawat darurat",
+]
+
+FACILITY_LOCATION_TERMS = [
+    "terdekat", "dekat", "sekitar", "di sekitar", "dari lokasiku", "dari lokasi saya",
+    "dekat saya", "near me", "yang paling dekat", "sekitar sini", "area saya", "lokasi sekarang",
+]
+
+FACILITY_CONTEXT_TERMS = [
+    "keluhan", "kendala", "kondisi", "gejala", "sakit", "darurat", "butuh bantuan",
+    "periksa", "kontrol", "berobat", "penanganan", "rujukan", "sekarang", "secepatnya",
+]
+
+
+def _is_healthcare_facility_request(text):
+    text = text.lower()
+    has_target = any(term in text for term in FACILITY_TARGET_TERMS)
+    has_location = any(term in text for term in FACILITY_LOCATION_TERMS)
+    has_action = any(term in text for term in FACILITY_ACTION_TERMS)
+    has_context = any(term in text for term in FACILITY_CONTEXT_TERMS)
+    if has_target and (has_location or has_action or has_context):
+        return True
+    if has_location and has_action and has_context:
+        return True
+    return False
 
 
 class NLPEngine:
@@ -115,6 +148,8 @@ class NLPEngine:
 
     def detect_intent(self, raw_text):
         text = raw_text.lower()
+        if _is_healthcare_facility_request(text):
+            return "ASK_HOSPITAL"
         for intent, patterns in INTENT_KEYWORDS.items():
             for pat in patterns:
                 if re.search(pat, text):

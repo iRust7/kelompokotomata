@@ -1,6 +1,7 @@
 """HealthBuddy Streamlit application."""
 
 import html
+import json
 import random
 import re
 import sys
@@ -9,7 +10,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -79,6 +79,8 @@ def init_state():
         st.session_state.show_facility_app = False
     if "facility_results" not in st.session_state:
         st.session_state.facility_results = None
+    if "facility_cta_shown" not in st.session_state:
+        st.session_state.facility_cta_shown = False
     if "pending_prompt" not in st.session_state:
         st.session_state.pending_prompt = None
     if "pending_reply" not in st.session_state:
@@ -382,6 +384,7 @@ def run_prompt(prompt):
         for term in ["rumah sakit", "rs terdekat", "klinik terdekat", "puskesmas terdekat", "fasilitas kesehatan", "lokasiku", "lokasi saya"]
     ) or ("segera" in reply_l and any(term in reply_l for term in ["igd", "rumah sakit", "119", "fasilitas kesehatan"])):
         st.session_state.show_facility_app = True
+        st.session_state.facility_cta_shown = False
     st.session_state.pending_prompt = prompt
     st.session_state.pending_reply = reply
     st.session_state.thinking_started_at = time.time()
@@ -551,17 +554,62 @@ def state_label():
     return "idle", "Siap menerima pesan", "Tulis keluhan dengan bahasa sehari-hari."
 
 
+def facility_cta_body():
+    return (
+        '<div class="facility-cta">'
+        '<strong>Mini app fasilitas kesehatan siap digunakan.</strong>'
+        '<p>Klik tombol di bawah chat untuk membaca lokasi Anda dan menampilkan peta fasilitas kesehatan terdekat.</p>'
+        '<span>Rumah sakit, klinik, puskesmas, dan praktik dokter akan diprioritaskan berdasarkan jarak.</span>'
+        '</div>'
+    )
+
+
+def facility_results_body(message, map_id):
+    facilities = message.get("facilities", [])
+    user_location = message.get("user_location", {})
+    cards = []
+    for item in facilities:
+        cards.append(
+            "<article>"
+            f"<strong>{html.escape(str(item.get('name', 'Fasilitas kesehatan')))}</strong>"
+            f"<span>{html.escape(str(item.get('type', 'Fasilitas kesehatan')))} - {item.get('distance_km', '-')} km</span>"
+            f"<small>{html.escape(str(item.get('address', 'Alamat tidak tersedia')))}</small>"
+            "</article>"
+        )
+    body = (
+        '<div class="facility-result">'
+        '<strong>Peta fasilitas kesehatan terdekat</strong>'
+        '<p>Marker pada peta dapat diklik untuk melihat ringkasan fasilitas.</p>'
+        f'<div class="facility-map" id="{map_id}"></div>'
+        f'<div class="facility-list">{"".join(cards) or "<p>Data fasilitas kesehatan belum ditemukan di sekitar lokasi Anda.</p>"}</div>'
+        '</div>'
+    )
+    config = {
+        "id": map_id,
+        "user": user_location,
+        "facilities": facilities,
+    }
+    return body, config
+
+
 def render_chat_messages():
     bot_anim = (Path(__file__).parent / "assets" / "animation" / "boticonanim.json").read_text(encoding="utf-8")
     user_anim = (Path(__file__).parent / "assets" / "animation" / "usericonanim.json").read_text(encoding="utf-8")
     html_messages = []
+    map_configs = []
     for idx, msg in enumerate(st.session_state.messages):
         role = msg["role"]
         label = "Anda" if role == "user" else "HealthBuddy"
         avatar_id = f"avatar_{idx}_{role}"
         animate_avatar = "1" if idx >= max(0, len(st.session_state.messages) - 3) else "0"
         is_latest_assistant = role == "assistant" and idx == len(st.session_state.messages) - 1 and msg.get("animate")
-        body = animated_words(msg["content"]) if is_latest_assistant else md_to_html(msg["content"])
+        if msg.get("type") == "facility_results":
+            body, config = facility_results_body(msg, f"facility_map_{idx}")
+            map_configs.append(config)
+        elif msg.get("type") == "facility_cta":
+            body = facility_cta_body()
+        else:
+            body = animated_words(msg["content"]) if is_latest_assistant else md_to_html(msg["content"])
         html_messages.append(
             f'<div class="hb-chat-row hb-chat-{role}" data-avatar="{avatar_id}" data-role="{role}" data-lottie="{animate_avatar}">'
             f'<div class="hb-chat-avatar" id="{avatar_id}"></div>'
@@ -592,13 +640,16 @@ def render_chat_messages():
     }[theme]
     height = min(760, max(600, len(st.session_state.messages) * 128 + 150))
     rows = "".join(html_messages)
+    maps_json = json.dumps(map_configs)
     components.html(
         f"""
         <!doctype html>
         <html>
         <head>
         <meta charset="utf-8" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <style>
         * {{ box-sizing: border-box; }}
         body {{ margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; background: transparent; color: {colors['fg']}; }}
@@ -624,6 +675,20 @@ def render_chat_messages():
         .hb-thinking-dots span:nth-child(3) {{ animation-delay: .3s; }}
         .hb-thinking-line {{ display: flex; align-items: center; gap: 12px; }}
         .hb-thinking-cycle {{ width: 18px; height: 18px; border-radius: 999px; border: 2px solid {colors['accentSoft']}; border-top-color: {colors['accent']}; animation: spin .72s linear infinite; }}
+        .facility-cta strong, .facility-result strong {{ display: block; margin-bottom: 8px; font-size: 15px; }}
+        .facility-cta span, .facility-result p {{ display: block; color: {colors['muted']}; font-size: 13px; line-height: 1.55; }}
+        .facility-map {{ width: 100%; height: 330px; margin: 14px 0; border-radius: 18px; border: 1px solid {colors['border']}; overflow: hidden; background: {colors['surface2']}; }}
+        .facility-list {{ display: grid; gap: 10px; }}
+        .facility-list article {{ padding: 12px 14px; border: 1px solid {colors['border']}; border-radius: 16px; background: {colors['surface2']}; }}
+        .facility-list article strong {{ margin-bottom: 4px; }}
+        .facility-list article span {{ display: block; color: {colors['accentDeep']}; font-weight: 700; font-size: 12px; margin-bottom: 4px; }}
+        .facility-list article small {{ color: {colors['muted']}; line-height: 1.5; }}
+        .leaflet-popup-content-wrapper {{ border-radius: 14px; }}
+        .leaflet-popup-content strong {{ display: block; margin-bottom: 4px; }}
+        .hb-map-pin {{ display: grid; place-items: center; border-radius: 999px 999px 999px 6px; transform: rotate(-45deg); box-shadow: 0 8px 18px rgba(0,0,0,.22); }}
+        .hb-map-pin span {{ transform: rotate(45deg); display: grid; place-items: center; color: #fff; font: 700 11px/1 Inter, sans-serif; }}
+        .facility-pin {{ background: {colors['accent']}; border: 2px solid #fff; }}
+        .user-pin {{ background: {colors['fg']}; border: 2px solid {colors['accent']}; }}
         @keyframes rowIn {{ from {{ opacity: 0; transform: translateY(10px); filter: blur(2px); }} to {{ opacity: 1; transform: translateY(0); filter: blur(0); }} }}
         @keyframes charIn {{ to {{ opacity: 1; }} }}
         @keyframes thinking {{ 0%, 80%, 100% {{ opacity: .32; transform: translateY(0); }} 40% {{ opacity: 1; transform: translateY(-4px); }} }}
@@ -654,6 +719,26 @@ def render_chat_messages():
         }});
         const chat = document.getElementById('chatWindow');
         chat.scrollTop = chat.scrollHeight;
+        const facilityMaps = {maps_json};
+        if (window.L && facilityMaps.length) {{
+          facilityMaps.forEach((cfg) => {{
+            const el = document.getElementById(cfg.id);
+            if (!el || !cfg.user || !cfg.user.lat || !cfg.user.lon) return;
+            const map = L.map(el, {{ scrollWheelZoom: false }}).setView([cfg.user.lat, cfg.user.lon], 13);
+            L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{ attribution: '&copy; OpenStreetMap' }}).addTo(map);
+            const userIcon = L.divIcon({{ className: 'hb-map-pin user-pin', html: '<span>Anda</span>', iconSize: [42, 42], iconAnchor: [21, 21] }});
+            L.marker([cfg.user.lat, cfg.user.lon], {{ icon: userIcon }}).addTo(map).bindPopup('<strong>Lokasi Anda</strong><br/>Titik lokasi dari browser.');
+            const bounds = [[cfg.user.lat, cfg.user.lon]];
+            cfg.facilities.forEach((item, idx) => {{
+              if (!item.lat || !item.lon) return;
+              const pin = L.divIcon({{ className: 'hb-map-pin facility-pin', html: '<span>' + (idx + 1) + '</span>', iconSize: [38, 48], iconAnchor: [19, 44] }});
+              const popup = '<strong>' + item.name + '</strong><br/>' + (item.type || 'Fasilitas kesehatan') + ' - ' + item.distance_km + ' km<br/><small>' + item.address + '</small>';
+              L.marker([item.lat, item.lon], {{ icon: pin }}).addTo(map).bindPopup(popup);
+              bounds.push([item.lat, item.lon]);
+            }});
+            if (bounds.length > 1) map.fitBounds(bounds, {{ padding: [28, 28] }});
+          }});
+        }}
         const counter = document.getElementById('thinkingCounter');
         if (counter) {{
           let sec = 1;
@@ -680,6 +765,9 @@ def complete_pending_reply():
         time.sleep(remaining)
     reply = st.session_state.get("pending_reply") or warm_response(st.session_state.bot.get_response(), prompt)
     st.session_state.messages.append({"role": "assistant", "content": reply, "animate": True})
+    if st.session_state.show_facility_app and not st.session_state.facility_cta_shown:
+        st.session_state.messages.append({"role": "assistant", "content": "Mini app fasilitas kesehatan", "type": "facility_cta"})
+        st.session_state.facility_cta_shown = True
     st.session_state.pending_prompt = None
     st.session_state.pending_reply = None
     st.session_state.thinking_started_at = None
@@ -761,17 +849,6 @@ def render_chat():
 def render_healthcare_finder_app():
     if not st.session_state.show_facility_app:
         return
-    st.markdown(
-        f"""
-        <section class="hb-mini-app">
-            <div class="hb-mini-app-head">
-                <div>{icon('phone-call', 20)}</div>
-                <div><strong>Mini app fasilitas kesehatan</strong><span>Cari rumah sakit, klinik, puskesmas, atau praktik dokter berdasarkan lokasi Anda saat ini.</span></div>
-            </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
     if not st.session_state.hospital_lookup and not st.session_state.facility_results:
         return
     try:
@@ -796,18 +873,18 @@ def render_healthcare_finder_app():
             status.update(label="Analisis fasilitas kesehatan selesai.", state="complete", expanded=False)
         st.session_state.facility_results = hospitals
         st.session_state.hospital_lookup = False
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": "Hasil pencarian fasilitas kesehatan terdekat.",
+            "type": "facility_results",
+            "facilities": hospitals,
+            "user_location": {"lat": lat, "lon": lon},
+        })
+        st.session_state.show_facility_app = False
+        st.rerun()
     hospitals = st.session_state.facility_results or []
-    cards = []
-    for item in hospitals:
-        cards.append(
-            f"<article><strong>{html.escape(item['name'])}</strong><span>{html.escape(item.get('type', 'Fasilitas kesehatan'))} - {item['distance_km']} km</span><small>{html.escape(item['address'])}</small></article>"
-        )
-    if hospitals:
-        map_rows = [{"lat": lat, "lon": lon, "label": "Lokasi Anda"}]
-        for item in hospitals:
-            map_rows.append({"lat": item["lat"], "lon": item["lon"], "label": item["name"]})
-        st.map(pd.DataFrame(map_rows), latitude="lat", longitude="lon", size=90)
-    st.markdown(f'<div class="hb-hospital-list">{"".join(cards) or "<p>Data fasilitas kesehatan tidak ditemukan di sekitar lokasi Anda.</p>"}</div>', unsafe_allow_html=True)
+    if not hospitals:
+        st.info("Data fasilitas kesehatan belum ditemukan di sekitar lokasi Anda.")
 
 
 def render_knowledge():
