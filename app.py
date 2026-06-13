@@ -428,14 +428,14 @@ def run_prompt(prompt):
     reply = warm_response(st.session_state.bot.get_response(), prompt)
     prompt_l = prompt.lower()
     reply_l = reply.lower()
-    if st.session_state.bot.state == State.EMERGENCY or any(
+    if st.session_state.bot.state in (State.EMERGENCY, State.FIRST_AID_VIEW) or any(
         term in prompt_l
         for term in [
             "rumah sakit", "rs terdekat", "klinik", "puskesmas", "fasilitas kesehatan", "faskes",
             "lokasiku", "lokasi saya", "dokter gigi", "dentis", "doket gigi", "dokter mata",
             "klinik mata", "dokter tht", "klinik tht", "spesialis",
         ]
-    ):
+    ) or "butuh rumah sakit terdekat" in reply_l:
         st.session_state.show_facility_app = True
         st.session_state.facility_cta_shown = False
     st.session_state.pending_prompt = prompt

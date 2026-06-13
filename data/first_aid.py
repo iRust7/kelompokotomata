@@ -3,6 +3,7 @@
 FIRST_AID = {
     "luka sayat": {
         "judul": "Luka Sayat / Lecet Ringan",
+        "kata_kunci": ["berdarah", "luka berdarah", "lecet", "kaki berdarah", "jatuh", "tergores", "tersayat", "luka"],
         "langkah": [
             "Cuci tangan terlebih dahulu sebelum menangani luka.",
             "Bersihkan luka dengan air mengalir bersih selama 1-2 menit.",
@@ -16,6 +17,7 @@ FIRST_AID = {
     },
     "luka bakar": {
         "judul": "Luka Bakar Ringan (Derajat 1)",
+        "kata_kunci": ["luka bakar", "terbakar", "kena api", "kena air panas", "melepuh", "tersiram air panas", "kena knalpot", "kena wajan"],
         "langkah": [
             "Aliri area yang terbakar dengan air mengalir suhu ruang selama 15-20 menit.",
             "Jangan gunakan es, pasta gigi, kecap, atau minyak.",
@@ -28,6 +30,7 @@ FIRST_AID = {
     },
     "mimisan": {
         "judul": "Mimisan",
+        "kata_kunci": ["mimisan", "hidung berdarah", "keluar darah dari hidung", "darah hidung"],
         "langkah": [
             "Duduk tegak dan condongkan kepala sedikit ke depan, jangan menengadah.",
             "Pencet bagian lunak hidung (di bawah tulang) selama 10-15 menit penuh.",
@@ -39,6 +42,7 @@ FIRST_AID = {
     },
     "tersedak": {
         "judul": "Tersedak (Choking)",
+        "kata_kunci": ["tersedak", "kesedak", "keselek", "sulit bernapas karena makanan", "nyangkut di tenggorokan", "keselek makanan"],
         "langkah": [
             "Tanyakan: Anda tersedak? Jika tidak bisa bicara/batuk, lakukan tindakan.",
             "Berdiri di belakang korban, condongkan ke depan.",
@@ -51,6 +55,7 @@ FIRST_AID = {
     },
     "pingsan": {
         "judul": "Pingsan / Sinkop",
+        "kata_kunci": ["pingsan", "hilang kesadaran", "tidak sadar", "jatuh pingsan", "sinkop", "kelenger", "mata gelap mendadak"],
         "langkah": [
             "Baringkan korban telentang di tempat datar dan aman.",
             "Angkat kedua kaki sekitar 30 cm untuk mengalirkan darah ke otak.",
@@ -63,6 +68,7 @@ FIRST_AID = {
     },
     "demam anak": {
         "judul": "Demam pada Anak",
+        "kata_kunci": ["demam anak", "anak demam", "bayi demam", "anak panas", "suhu anak tinggi", "anak rewel panas", "badan anak panas"],
         "langkah": [
             "Ukur suhu dengan termometer, catat angka dan waktunya.",
             "Pakaikan pakaian tipis, jangan diselimuti tebal.",
@@ -75,6 +81,7 @@ FIRST_AID = {
     },
     "keseleo": {
         "judul": "Keseleo / Terkilir",
+        "kata_kunci": ["keseleo", "terkilir", "salah urat", "kaki keseleo", "tangan keseleo", "sendi geser", "kaki terkilir", "tangan terkilir", "keseleo engkel"],
         "langkah": [
             "Terapkan prinsip RICE.",
             "Rest: istirahatkan area yang cedera, jangan dipakai beraktivitas.",
@@ -87,6 +94,7 @@ FIRST_AID = {
     },
     "gigitan serangga": {
         "judul": "Gigitan / Sengatan Serangga",
+        "kata_kunci": ["gigitan serangga", "digigit serangga", "disengat lebah", "digigit tawon", "digigit semut", "sengatan", "digigit serangga berbisa", "bentol digigit"],
         "langkah": [
             "Singkirkan sengat (jika ada) dengan menggesek pakai kartu, jangan dipencet.",
             "Cuci area gigitan dengan sabun dan air bersih.",
@@ -98,6 +106,7 @@ FIRST_AID = {
     },
     "muntah": {
         "judul": "Muntah Berulang",
+        "kata_kunci": ["muntah berulang", "muntah terus", "muntah muntah", "keluar makanan terus", "tidak bisa menelan", "perut menolak makanan"],
         "langkah": [
             "Istirahatkan lambung 30-60 menit setelah muntah.",
             "Mulai dengan sedikit cairan: oralit, air putih, atau es batu kecil.",
@@ -109,6 +118,7 @@ FIRST_AID = {
     },
     "dehidrasi": {
         "judul": "Dehidrasi Ringan-Sedang",
+        "kata_kunci": ["dehidrasi", "kurang cairan", "sangat haus", "haus berat", "mulut kering sekali", "kurang minum"],
         "langkah": [
             "Minum oralit atau larutan garam-gula buatan sendiri (1 sendok teh garam + 8 sendok teh gula dalam 1 liter air).",
             "Minum sedikit-sedikit tapi sering.",

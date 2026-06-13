@@ -149,6 +149,8 @@ class NLPEngine:
         for key, info in FIRST_AID.items():
             self.first_aid_index[self._stem_phrase(key)] = key
             self.first_aid_index[self._stem_phrase(info["judul"])] = key
+            for kw in info.get("kata_kunci", []):
+                self.first_aid_index[self._stem_phrase(kw)] = key
 
     def _build_definition_index(self):
         self.definition_index = {}
@@ -205,7 +207,7 @@ class NLPEngine:
         for stemmed_key, original in self.red_flag_index.items():
             if not stemmed_key:
                 continue
-            score = fuzz.partial_ratio(stemmed_key, normalized)
+            score = fuzz.token_set_ratio(stemmed_key, normalized)
             if score >= 90 and len(stemmed_key) >= 5:
                 return original
         return None
@@ -300,14 +302,16 @@ class NLPEngine:
 
     def find_first_aid(self, raw_text):
         normalized = self.normalize(raw_text)
-        for stemmed_key, original in self.first_aid_index.items():
-            if stemmed_key and stemmed_key in normalized:
-                return original
-        for stemmed_key, original in self.first_aid_index.items():
+        tokenized = " ".join(self.tokenize(raw_text))
+        candidates = sorted(self.first_aid_index.keys(), key=lambda x: len(x) if x else 0, reverse=True)
+        for stemmed_key in candidates:
+            if stemmed_key and (stemmed_key in tokenized or stemmed_key in normalized):
+                return self.first_aid_index[stemmed_key]
+        for stemmed_key in candidates:
             if not stemmed_key:
                 continue
-            if fuzz.partial_ratio(stemmed_key, normalized) >= 88:
-                return original
+            if fuzz.token_set_ratio(stemmed_key, normalized) >= 88:
+                return self.first_aid_index[stemmed_key]
         return None
 
     def find_faq(self, raw_text):

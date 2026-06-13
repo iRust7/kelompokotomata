@@ -174,7 +174,7 @@ class HealthBuddyFSM:
 
         # Direct lookup probes regardless of intent
         first_aid_topic = self.nlp.find_first_aid(text)
-        if first_aid_topic and self.state in (State.GREETING, State.MAIN_MENU):
+        if first_aid_topic:
             self._transition(State.FIRST_AID_VIEW, f"first_aid_direct:{first_aid_topic}")
             self.response = self._render_first_aid(first_aid_topic)
             return
@@ -380,9 +380,9 @@ class HealthBuddyFSM:
             lines.append(f"{i}. {step}")
         lines.append("")
         lines.append(f"**Peringatan:** {info['warning']}")
-        # Tambahkan rekomendasi RS jika kondisi juga ada di RED_FLAGS
-        if check_needs_hospital_recommendation(topic):
-            lines.append(HOSPITAL_RECOMMENDATION_TEXT)
+        # Selalu tambahkan rekomendasi RS untuk semua kondisi P3K
+        # karena semua kondisi P3K memerlukan perhatian medis jika memburuk
+        lines.append(HOSPITAL_RECOMMENDATION_TEXT)
         return "\n".join(lines)
 
     def _render_first_aid_menu(self):
