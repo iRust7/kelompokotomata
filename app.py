@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -74,6 +75,10 @@ def init_state():
         st.session_state.tip_index = 0
     if "hospital_lookup" not in st.session_state:
         st.session_state.hospital_lookup = False
+    if "show_facility_app" not in st.session_state:
+        st.session_state.show_facility_app = False
+    if "facility_results" not in st.session_state:
+        st.session_state.facility_results = None
     if "pending_prompt" not in st.session_state:
         st.session_state.pending_prompt = None
     if "pending_reply" not in st.session_state:
@@ -370,6 +375,13 @@ def run_prompt(prompt):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.bot.step(prompt)
     reply = warm_response(st.session_state.bot.get_response(), prompt)
+    prompt_l = prompt.lower()
+    reply_l = reply.lower()
+    if st.session_state.bot.state == State.EMERGENCY or any(
+        term in prompt_l
+        for term in ["rumah sakit", "rs terdekat", "klinik terdekat", "puskesmas terdekat", "fasilitas kesehatan", "lokasiku", "lokasi saya"]
+    ) or ("segera" in reply_l and any(term in reply_l for term in ["igd", "rumah sakit", "119", "fasilitas kesehatan"])):
+        st.session_state.show_facility_app = True
     st.session_state.pending_prompt = prompt
     st.session_state.pending_reply = reply
     st.session_state.thinking_started_at = time.time()
@@ -702,10 +714,10 @@ def render_chat():
             if st.button("Panduan", key="help_chat", use_container_width=True):
                 run_prompt("bantuan")
         with b3:
-            if st.session_state.bot.state == State.EMERGENCY and st.button("Cari rumah sakit terdekat", key="lookup_hospital", type="primary", use_container_width=True):
+            if st.session_state.show_facility_app and st.button("Cari fasilitas kesehatan terdekat", key="lookup_hospital", type="primary", use_container_width=True):
                 st.session_state.hospital_lookup = True
                 st.rerun()
-        render_hospital_lookup()
+        render_healthcare_finder_app()
 
     with right:
         st.markdown(
@@ -746,8 +758,21 @@ def render_chat():
         st.markdown(f'<blockquote class="hb-tip">{html.escape(tip)}</blockquote>', unsafe_allow_html=True)
 
 
-def render_hospital_lookup():
-    if not st.session_state.hospital_lookup:
+def render_healthcare_finder_app():
+    if not st.session_state.show_facility_app:
+        return
+    st.markdown(
+        f"""
+        <section class="hb-mini-app">
+            <div class="hb-mini-app-head">
+                <div>{icon('phone-call', 20)}</div>
+                <div><strong>Mini app fasilitas kesehatan</strong><span>Cari rumah sakit, klinik, puskesmas, atau praktik dokter berdasarkan lokasi Anda saat ini.</span></div>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+    if not st.session_state.hospital_lookup and not st.session_state.facility_results:
         return
     try:
         from streamlit_js_eval import get_geolocation
@@ -756,18 +781,33 @@ def render_hospital_lookup():
         return
     loc = get_geolocation()
     if not loc or "coords" not in loc:
-        st.info("Izinkan akses lokasi pada browser untuk melihat rumah sakit terdekat.")
+        st.info("Izinkan akses lokasi pada browser untuk melihat fasilitas kesehatan terdekat.")
         return
     lat = loc["coords"]["latitude"]
     lon = loc["coords"]["longitude"]
-    with st.spinner("Mencari rumah sakit terdekat..."):
-        hospitals = find_nearby_hospitals(lat, lon, limit=3)
+    if st.session_state.hospital_lookup or st.session_state.facility_results is None:
+        with st.status("Menganalisis lokasi dan menelusuri fasilitas kesehatan terdekat...", expanded=True) as status:
+            st.write("Membaca koordinat dari browser.")
+            time.sleep(0.35)
+            st.write("Menghubungi basis data OpenStreetMap melalui Overpass.")
+            hospitals = find_nearby_hospitals(lat, lon, limit=6)
+            time.sleep(0.35)
+            st.write("Mengurutkan fasilitas berdasarkan jarak terdekat.")
+            status.update(label="Analisis fasilitas kesehatan selesai.", state="complete", expanded=False)
+        st.session_state.facility_results = hospitals
+        st.session_state.hospital_lookup = False
+    hospitals = st.session_state.facility_results or []
     cards = []
     for item in hospitals:
         cards.append(
-            f"<article><strong>{html.escape(item['name'])}</strong><span>{item['distance_km']} km</span><small>{html.escape(item['address'])}</small></article>"
+            f"<article><strong>{html.escape(item['name'])}</strong><span>{html.escape(item.get('type', 'Fasilitas kesehatan'))} - {item['distance_km']} km</span><small>{html.escape(item['address'])}</small></article>"
         )
-    st.markdown(f'<div class="hb-hospital-list">{"".join(cards) or "<p>Data rumah sakit tidak ditemukan.</p>"}</div>', unsafe_allow_html=True)
+    if hospitals:
+        map_rows = [{"lat": lat, "lon": lon, "label": "Lokasi Anda"}]
+        for item in hospitals:
+            map_rows.append({"lat": item["lat"], "lon": item["lon"], "label": item["name"]})
+        st.map(pd.DataFrame(map_rows), latitude="lat", longitude="lon", size=90)
+    st.markdown(f'<div class="hb-hospital-list">{"".join(cards) or "<p>Data fasilitas kesehatan tidak ditemukan di sekitar lokasi Anda.</p>"}</div>', unsafe_allow_html=True)
 
 
 def render_knowledge():

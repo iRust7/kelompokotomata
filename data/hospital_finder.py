@@ -100,18 +100,49 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def find_nearby_hospitals(lat, lon, limit=3):
-    """Query Overpass API untuk mencari rumah sakit terdekat tanpa batas radius kaku.
-    Akan memperbesar radius pencarian secara otomatis jika belum menemukan jumlah yang cukup.
+def _facility_type(tags):
+    amenity = tags.get("amenity", "")
+    healthcare = tags.get("healthcare", "")
+    name = tags.get("name", "").lower()
+    if "puskesmas" in name:
+        return "Puskesmas"
+    if amenity == "hospital" or healthcare == "hospital":
+        return "Rumah sakit"
+    if amenity == "clinic" or healthcare == "clinic":
+        return "Klinik"
+    if amenity == "doctors" or healthcare == "doctor":
+        return "Praktik dokter"
+    return "Fasilitas kesehatan"
+
+
+def find_nearby_hospitals(lat, lon, limit=6):
+    """Query Overpass API untuk mencari fasilitas kesehatan terdekat.
+
+    Cakupan: rumah sakit, klinik, puskesmas (berdasarkan nama), dan praktik dokter.
+    Radius diperbesar bertahap agar tetap ada hasil pada area yang datanya jarang.
     """
-    # Cari dengan radius yang semakin membesar: 5km, 25km, 100km, 500km
-    for radius_m in [5000, 25000, 100000, 500000]:
+    for radius_m in [4000, 10000, 25000, 75000, 150000]:
         query = f"""
         [out:json][timeout:15];
         (
           node["amenity"="hospital"](around:{radius_m},{lat},{lon});
           way["amenity"="hospital"](around:{radius_m},{lat},{lon});
           relation["amenity"="hospital"](around:{radius_m},{lat},{lon});
+          node["amenity"="clinic"](around:{radius_m},{lat},{lon});
+          way["amenity"="clinic"](around:{radius_m},{lat},{lon});
+          relation["amenity"="clinic"](around:{radius_m},{lat},{lon});
+          node["amenity"="doctors"](around:{radius_m},{lat},{lon});
+          way["amenity"="doctors"](around:{radius_m},{lat},{lon});
+          relation["amenity"="doctors"](around:{radius_m},{lat},{lon});
+          node["healthcare"="hospital"](around:{radius_m},{lat},{lon});
+          way["healthcare"="hospital"](around:{radius_m},{lat},{lon});
+          relation["healthcare"="hospital"](around:{radius_m},{lat},{lon});
+          node["healthcare"="clinic"](around:{radius_m},{lat},{lon});
+          way["healthcare"="clinic"](around:{radius_m},{lat},{lon});
+          relation["healthcare"="clinic"](around:{radius_m},{lat},{lon});
+          node["healthcare"="doctor"](around:{radius_m},{lat},{lon});
+          way["healthcare"="doctor"](around:{radius_m},{lat},{lon});
+          relation["healthcare"="doctor"](around:{radius_m},{lat},{lon});
         );
         out center body;
         """
@@ -133,7 +164,8 @@ def find_nearby_hospitals(lat, lon, limit=3):
                 continue
             
             tags = element.get("tags", {})
-            name = tags.get("name", "Rumah Sakit (tanpa nama)")
+            name = tags.get("name", "Fasilitas kesehatan tanpa nama")
+            facility_type = _facility_type(tags)
             
             # Ekstrak alamat lengkap
             address = tags.get("addr:full") or tags.get("addr:street")
@@ -148,6 +180,7 @@ def find_nearby_hospitals(lat, lon, limit=3):
             
             hospitals.append({
                 "name": name,
+                "type": facility_type,
                 "lat": h_lat,
                 "lon": h_lon,
                 "distance_km": round(dist, 2),
@@ -158,7 +191,7 @@ def find_nearby_hospitals(lat, lon, limit=3):
         hospitals.sort(key=lambda h: h["distance_km"])
         
         # Jika sudah menemukan setidaknya 'limit' RS, atau ini iterasi terakhir, kembalikan.
-        if len(hospitals) >= limit or radius_m == 500000:
+        if len(hospitals) >= limit or radius_m == 150000:
             return hospitals[:limit]
             
     return []

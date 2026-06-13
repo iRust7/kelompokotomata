@@ -135,10 +135,10 @@ class HealthBuddyFSM:
 
         if intent == "ASK_HOSPITAL":
             self.response = (
-                "Untuk mencari rumah sakit atau klinik terdekat dari lokasi Anda, "
-                "silakan klik tombol **📍 Cari RS Terdekat** di bawah kolom chat.\n\n"
+                "Saya bisa membantu menampilkan fasilitas kesehatan terdekat dari lokasi Anda saat ini. "
+                "Gunakan tombol **Cari fasilitas kesehatan terdekat** yang muncul di bawah percakapan.\n\n"
                 "Sistem akan meminta izin akses lokasi dari browser Anda, "
-                "lalu menampilkan daftar rumah sakit terdekat lengkap dengan peta dan jarak."
+                "lalu menampilkan peta berisi rumah sakit, klinik, puskesmas, atau praktik dokter yang paling dekat."
             )
             return
 
