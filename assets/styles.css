@@ -1016,6 +1016,143 @@ div[data-testid="stChatInput"] textarea:focus {
   font-family: "JetBrains Mono", monospace;
 }
 
+.hb-about-panel,
+.hb-about-meta {
+  min-height: 380px;
+  padding: 34px;
+  border-radius: 32px;
+}
+
+.hb-about-panel h3,
+.hb-about-meta h3 {
+  margin: 12px 0 16px !important;
+  font-size: clamp(34px, 4vw, 54px) !important;
+}
+
+.hb-about-panel p,
+.hb-about-meta li,
+.hb-creator-card p {
+  color: var(--fg-soft);
+  line-height: 1.68;
+}
+
+.hb-about-points {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.hb-about-points article {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 2px 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-2);
+}
+
+.hb-about-points article svg {
+  grid-row: 1 / span 2;
+  color: var(--accent-deep);
+}
+
+.hb-about-points strong {
+  color: var(--fg);
+}
+
+.hb-about-points span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.hb-about-meta ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+
+.hb-about-meta li {
+  display: grid;
+  gap: 5px;
+  padding: 14px 0;
+  border-bottom: 1px dotted var(--border);
+}
+
+.hb-about-meta li span,
+.hb-creator-card small {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.hb-about-meta li strong {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.hb-creators {
+  margin-top: 18px;
+}
+
+.hb-creators-head {
+  margin: 0 0 16px;
+  padding: 28px 0 0;
+}
+
+.hb-creators-head h2 {
+  margin: 10px 0 0 !important;
+  font-size: clamp(38px, 5vw, 68px) !important;
+}
+
+.hb-creator-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.hb-creator-card {
+  min-height: 280px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 30px 30px 10px 30px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: transform 260ms ease, border-color 260ms ease;
+}
+
+.hb-creator-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.hb-avatar-holder {
+  width: 78px;
+  height: 78px;
+  margin-bottom: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 30% 30%, var(--accent-soft), transparent 50%),
+    var(--fg);
+  color: var(--surface);
+  box-shadow: 7px 7px 0 var(--accent);
+}
+
+.hb-avatar-holder span {
+  font-family: "Instrument Serif", serif;
+  font-size: 32px;
+  letter-spacing: -0.05em;
+}
+
+.hb-creator-card h3 {
+  margin: 10px 0 10px !important;
+  font-size: 34px !important;
+}
+
 .hb-hospital-list {
   display: grid;
   gap: 10px;
@@ -1167,6 +1304,10 @@ div[data-testid="stChatInput"] textarea:focus {
 
   .hb-knowledge-metrics {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hb-creator-grid {
+    grid-template-columns: 1fr;
   }
 
   .hb-hero-copy {
