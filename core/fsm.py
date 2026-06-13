@@ -135,10 +135,10 @@ class HealthBuddyFSM:
 
         if intent == "ASK_HOSPITAL":
             self.response = (
-                "Saya bisa membantu menampilkan fasilitas kesehatan terdekat dari lokasi Anda saat ini. "
-                "Gunakan tombol **Cari fasilitas kesehatan terdekat** yang muncul di bawah percakapan.\n\n"
-                "Sistem akan meminta izin akses lokasi dari browser Anda, "
-                "lalu menampilkan peta berisi rumah sakit, klinik, puskesmas, atau praktik dokter yang paling dekat."
+                "Saya bisa bantu menelusuri fasilitas kesehatan terdekat dari lokasi Anda saat ini.\n\n"
+                "Di bawah percakapan akan muncul mini app pencarian lokasi. Klik **Cari fasilitas kesehatan terdekat**, "
+                "izinkan akses lokasi dari browser, lalu sistem akan menampilkan peta interaktif berisi rumah sakit, klinik, puskesmas, atau praktik dokter terdekat.\n\n"
+                "Jika keluhan terasa darurat seperti sesak berat, nyeri dada, pingsan, kejang, atau gejala stroke, jangan menunggu hasil pencarian terlalu lama. Hubungi 119 atau langsung menuju IGD."
             )
             return
 
