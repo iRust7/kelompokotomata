@@ -39,9 +39,10 @@ PAGES = {
     "CHAT": "Chatbot",
     "KNOWLEDGE": "Knowledge",
     "FIRST_AID": "P3K",
+    "ABOUT": "About",
 }
 
-ENABLE_CHAT_EXPORT = True
+ENABLE_CHAT_EXPORT = False
 
 
 def load_styles():
@@ -476,7 +477,7 @@ def render_header():
         unsafe_allow_html=True,
     )
 
-    cols = st.columns([1, 1, 1, 1, 0.9], gap="small")
+    cols = st.columns([1, 1, 1, 1, 1, 0.9], gap="small")
     with cols[0]:
         nav_button("Beranda", "HOME", "nav_home", "layout-dashboard")
     with cols[1]:
@@ -486,6 +487,8 @@ def render_header():
     with cols[3]:
         nav_button("P3K", "FIRST_AID", "nav_p3k", "shield-plus")
     with cols[4]:
+        nav_button("About", "ABOUT", "nav_about", "user-round")
+    with cols[5]:
         label = "Gelap" if st.session_state.theme == "light" else "Terang"
         if st.button(label, key="theme_toggle", use_container_width=True):
             st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
@@ -1083,6 +1086,78 @@ def render_first_aid():
         )
 
 
+def render_about():
+    st.markdown(
+        f"""
+        <section class="hb-shell hb-page-title hb-about-hero">
+            <span>Tentang project</span>
+            <h1>HealthBuddy adalah chatbot edukasi kesehatan berbasis aturan dan Finite State Machine.</h1>
+            <p>Project ini dibuat untuk mata kuliah Teori Bahasa dan Otomata. Fokusnya adalah membangun asisten percakapan kesehatan tanpa API AI eksternal, dengan knowledge base lokal, NLP rule-based, dan alur state yang dapat dijelaskan secara akademik.</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    left, right = st.columns([1.15, 0.85], gap="medium")
+    with left:
+        st.markdown(
+            f"""
+            <section class="hb-card hb-about-panel">
+                <span class="hb-kicker">Ringkasan sistem</span>
+                <h3>Didesain sebagai eksperimen chatbot kesehatan yang transparan dan dapat ditelusuri.</h3>
+                <p>HealthBuddy tidak melakukan diagnosis medis. Sistem ini membaca masukan pengguna, mendeteksi intent, mencocokkan gejala dengan knowledge base, mengenali tanda bahaya, lalu memberi respons edukatif yang aman.</p>
+                <div class="hb-about-points">
+                    <article>{icon('workflow', 20)}<strong>Finite State Machine</strong><span>Setiap percakapan bergerak melalui state seperti greeting, triage, advice, FAQ, P3K, dan emergency.</span></article>
+                    <article>{icon('database', 20)}<strong>Knowledge lokal</strong><span>Data gejala, istilah, P3K, red flag, dan frasa fasilitas kesehatan disimpan di dalam project.</span></article>
+                    <article>{icon('shield-check', 20)}<strong>Batas aman</strong><span>Respons dibatasi sebagai edukasi, bukan pengganti dokter, resep, atau diagnosis profesional.</span></article>
+                </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+    with right:
+        st.markdown(
+            f"""
+            <aside class="hb-card hb-about-meta">
+                <span class="hb-kicker">Identitas project</span>
+                <h3>HealthBuddy</h3>
+                <ul>
+                    <li><span>Mata kuliah</span><strong>Teori Bahasa dan Otomata</strong></li>
+                    <li><span>Teknologi</span><strong>Python, Streamlit, FSM, NLP rule-based</strong></li>
+                    <li><span>Mode kerja</span><strong>Tanpa API AI eksternal</strong></li>
+                    <li><span>Tujuan</span><strong>Edukasi kesehatan dan simulasi chatbot berbasis aturan</strong></li>
+                </ul>
+            </aside>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    creators = [
+        ("Moh Nurul Haq", "Knowledge engineering, UI/UX refinement, evaluasi percakapan"),
+        ("Leo Aditiya Hardani", "Pengembangan fitur, pengujian alur, dan integrasi project"),
+        ("Rifqi Nur Abdillah", "Repository, struktur project, dan koordinasi implementasi"),
+    ]
+    cards = []
+    for idx, (name, role) in enumerate(creators, 1):
+        initials = ''.join(part[0] for part in name.split()[:2]).upper()
+        cards.append(
+            f"""
+            <article class="hb-creator-card">
+                <div class="hb-avatar-holder"><span>{initials}</span></div>
+                <small>Kreator {idx:02d}</small>
+                <h3>{html.escape(name)}</h3>
+                <p>{html.escape(role)}</p>
+            </article>
+            """
+        )
+    st.markdown(
+        '<section class="hb-creators"><div class="hb-creators-head"><span class="hb-kicker">Tim kreator</span><h2>Orang-orang di balik HealthBuddy.</h2></div><div class="hb-creator-grid">'
+        + ''.join(cards)
+        + '</div></section>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_footer():
     st.markdown(
         """
@@ -1113,6 +1188,8 @@ def main():
         render_knowledge()
     elif page == "FIRST_AID":
         render_first_aid()
+    elif page == "ABOUT":
+        render_about()
 
     render_footer()
 
