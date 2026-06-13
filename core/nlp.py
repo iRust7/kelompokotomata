@@ -338,28 +338,34 @@ class NLPEngine:
         normalized = self.normalize(raw_text)
         raw_lower = raw_text.lower()
         
-        #  GUARD 1: Jika ini adalah keluhan tensi/tekanan darah, 
-        # JANGAN ijinkan masuk ke modul P3K Luka/Cedera fisik.
-        if "tekanan darah" in raw_lower or "tensi" in raw_lower:
+        # GUARD: Daftar kata kunci penyakit/kondisi yang HARUS menghindari modul P3K
+        # Kita masukkan istilah yang sering disalahpahami oleh modul luka
+        blocklist = [
+            "tekanan darah", "tensi", 
+            "demam", "dbd", "trombosit", "berdarah",  # Mencegah DBD dibajak luka sayat
+            "maag", "lambung", "diare", "sesak"      # Mencegah penyakit organ dalam
+        ]
+        
+        # Jika ada indikasi penyakit sistemik, hentikan pencarian P3K
+        if any(keyword in raw_lower for keyword in blocklist):
             return None
 
         tokenized = self.tokenize(raw_text)
         candidates = sorted(self.first_aid_index.keys(), key=lambda x: len(x) if x else 0, reverse=True)
         
-        # PERBAIKAN: Gunakan regex word boundary (\b) agar mencocokkan kata utuh,
-        # bukan potongan karakter di dalam kata lain (mencegah partial substring match)
+        # Gunakan regex word boundary (\b) agar presisi
         for stemmed_key in candidates:
             if stemmed_key:
-                # Membuat pola regex kata utuh dari kata kunci p3k
                 pattern = rf"\b{re.escape(stemmed_key)}\b"
                 if re.search(pattern, normalized):
                     return self.first_aid_index[stemmed_key]
                     
-        # Fuzzy fallback (hanya jalankan jika kata cukup panjang untuk menghindari salah deteksi)
+        # Fuzzy fallback dengan batasan lebih ketat
         for stemmed_key in candidates:
             if not stemmed_key or len(stemmed_key) < 5:
                 continue
-            if fuzz.token_set_ratio(stemmed_key, normalized) >= 90: # Naikkan batasan ke 90
+            # Gunakan token_set_ratio untuk toleransi typo, tapi dengan ambang batas tinggi
+            if fuzz.token_set_ratio(stemmed_key, normalized) >= 92: 
                 return self.first_aid_index[stemmed_key]
                 
         return None
