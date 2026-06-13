@@ -335,40 +335,32 @@ class NLPEngine:
             return None
 
     def find_first_aid(self, raw_text):
-        normalized = self.normalize(raw_text)
-        raw_lower = raw_text.lower()
-        
-        # GUARD: Daftar kata kunci penyakit/kondisi yang HARUS menghindari modul P3K
-        # Kita masukkan istilah yang sering disalahpahami oleh modul luka
-        blocklist = [
-            "tekanan darah", "tensi", 
-            "demam", "dbd", "trombosit", "berdarah", "demam berdarah", "dbd",  # Mencegah DBD dibajak luka sayat
-            "maag", "lambung", "diare", "sesak"      # Mencegah penyakit organ dalam
-        ]
-        
-        # Jika ada indikasi penyakit sistemik, hentikan pencarian P3K
-        if any(keyword in raw_lower for keyword in blocklist):
-            return None
+            normalized = self.normalize(raw_text)
+            raw_lower = raw_text.lower()
+            
+            # 1. Daftar blokir yang hanya untuk penyakit sistemik (bukan untuk trauma fisik)
+            # Hapus "berdarah" dari sini jika ingin P3K Pendarahan tetap aktif!
+            blocklist = ["tekanan darah", "tensi", "demam", "dbd", "maag", "lambung", "anemia", "pucat"]
+            
+            # 2. Cek apakah ini Pendarahan (spesifik P3K)
+            # Jika user benar-benar menyebut pendarahan, JANGAN DIBLOKIR.
+            is_bleeding = "pendarahan" in raw_lower or "darah keluar" in raw_lower
+            
+            if not is_bleeding and any(kw in raw_lower for kw in blocklist):
+                return None
 
-        tokenized = self.tokenize(raw_text)
-        candidates = sorted(self.first_aid_index.keys(), key=lambda x: len(x) if x else 0, reverse=True)
-        
-        # Gunakan regex word boundary (\b) agar presisi
-        for stemmed_key in candidates:
-            if stemmed_key:
-                pattern = rf"\b{re.escape(stemmed_key)}\b"
-                if re.search(pattern, normalized):
-                    return self.first_aid_index[stemmed_key]
+            # Pencarian presisi menggunakan regex word boundary
+            candidates = sorted(self.first_aid_index.keys(), key=len, reverse=True)
+            for key in [k for k in candidates if k]:
+                if re.search(rf"\b{re.escape(key)}\b", normalized):
+                    return self.first_aid_index[key]
+                        
+            # Fuzzy fallback dengan ambang batas ketat
+            for key in [k for k in candidates if k and len(k) >= 5]:
+                if fuzz.token_set_ratio(key, normalized) >= 92: 
+                    return self.first_aid_index[key]
                     
-        # Fuzzy fallback dengan batasan lebih ketat
-        for stemmed_key in candidates:
-            if not stemmed_key or len(stemmed_key) < 5:
-                continue
-            # Gunakan token_set_ratio untuk toleransi typo, tapi dengan ambang batas tinggi
-            if fuzz.token_set_ratio(stemmed_key, normalized) >= 92: 
-                return self.first_aid_index[stemmed_key]
-                
-        return None
+            return None
 
     def find_faq(self, raw_text):
         normalized = self.normalize(raw_text)

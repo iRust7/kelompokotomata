@@ -91,6 +91,10 @@ EXPANDED_SYMPTOM_RULES = [
     {"phrase": "mengatasi nyeri haid", "disease": "dismenore", "weight": 10.0},
     {"phrase": "nyeri haid", "disease": "dismenore", "weight": 8.0},
     {"phrase": "sakit perut haid", "disease": "dismenore", "weight": 8.0},
+    {"phrase": "sel darah merah kurang", "disease": "anemia", "weight": 10.0},
+    {"phrase": "kekurangan sel darah merah", "disease": "anemia", "weight": 10.0},
+    {"phrase": "kurang darah", "disease": "anemia", "weight": 10.0},
+    {"phrase": "kurang sel darah", "disease": "anemia", "weight": 10.0},
 ]
 
 TYPO_ALIASES = {
